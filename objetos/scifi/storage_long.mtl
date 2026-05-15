@@ -1,0 +1,7 @@
+newmtl rangement
+Ka 1.0 1.0 1.0
+Kd 0.588235 0.588235 0.588235
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd storage_long_BaseColor.png

@@ -1,0 +1,367 @@
+newmtl BY_Slot_#10
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_Slot_#10.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_Slot_#11
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_Slot_#11.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_Slot_#12
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_Slot_#12.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_Slot_#9
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_Slot_#9.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth1
+Ka 1.0 1.0 1.0
+Kd 0.521569 0.462745 0.188235
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth2
+Ka 1.0 1.0 1.0
+Kd 0.909804 0.909804 0.588235
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth3
+Ka 1.0 1.0 1.0
+Kd 0.235294 0.184314 0.105882
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth4
+Ka 1.0 1.0 1.0
+Kd 0.898039 0.866667 0.603922
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#10
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#10.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#10.002
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#10.003
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#11
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#11.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#11.002
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#11.003
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#12
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#12.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#12.002
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#12.003
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#7
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#7.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#7.002
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#7.003
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#8
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#8.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#8.002
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#8.003
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#9
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#9.001
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#9.002
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl BY_cloth_Slot_#9.003
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl eyes_b
+Ka 1.0 1.0 1.0
+Kd 0.054902 0.031373 0.015686
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl eyes_w
+Ka 1.0 1.0 1.0
+Kd 1.000000 0.980392 0.894118
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl fur
+Ka 1.0 1.0 1.0
+Kd 0.415686 0.415686 0.415686
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl lens
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl nail
+Ka 1.0 1.0 1.0
+Kd 0.031373 0.250980 0.101961
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl oral
+Ka 1.0 1.0 1.0
+Kd 0.149020 0.098039 0.098039
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl pupil
+Ka 1.0 1.0 1.0
+Kd 0.000000 0.000000 0.000000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl skin
+Ka 1.0 1.0 1.0
+Kd 0.082353 0.392157 0.184314
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl sphere1
+Ka 1.0 1.0 1.0
+Kd 0.035294 0.035294 0.035294
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png
+
+newmtl sphere2
+Ka 1.0 1.0 1.0
+Kd 0.588000 0.588000 0.588000
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd UV1_BY_sub.png

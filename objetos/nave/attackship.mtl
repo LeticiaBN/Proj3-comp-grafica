@@ -1,0 +1,135 @@
+newmtl Armor
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Armor_BaseColor.png
+
+newmtl Barrels
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Barrels_BaseColor.png
+
+newmtl Electric
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Electric_BaseColor.png
+
+newmtl Hull1
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Hull1_BaseColor.png
+
+newmtl Hull2
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Hull2_BaseColor.png
+
+newmtl Hull3
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Hull3_BaseColor.png
+
+newmtl RadiatorInside
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_RadiatorInside_BaseColor.png
+
+newmtl RadiatorOutside
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_RadiatorOutside_BaseColor.png
+
+newmtl SolarPanels
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_SolarPanels_BaseColor.png
+
+newmtl ThrusterL
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_ThrusterL_BaseColor.png
+
+newmtl ThrusterM
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_ThrusterM_BaseColor.png
+
+newmtl ThrusterR
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_ThrusterR_BaseColor.png
+
+newmtl TorpedoMain
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_TorpedoMain_BaseColor.png
+
+newmtl TorpedoThruster
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_TorpedoThruster_BaseColor.png
+
+newmtl Vents
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Vents_BaseColor.png
+
+newmtl Windows
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Windows_BaseColor.png
+
+newmtl Wings
+Ka 1.0 1.0 1.0
+Kd 1.0 1.0 1.0
+Ks 0.0 0.0 0.0
+d 1.0
+illum 1
+map_Kd Attackship_Wings_BaseColor.png
