@@ -1,4 +1,8 @@
-"""Wrapper para programa GLSL: compila VS+FS, linka, expõe uniforms."""
+"""Wrapper para programa GLSL: compila VS+FS, linka, expoe uniforms.
+
+Inclui helpers para enviar vetores, matrizes 3x3/4x4 e arrays de
+vec3/int, usados pelo pipeline de iluminacao (Phong por fragmento).
+"""
 from pathlib import Path
 
 import numpy as np
@@ -7,8 +11,8 @@ from OpenGL.GL import (
     GL_VERTEX_SHADER, glAttachShader, glCompileShader, glCreateProgram,
     glCreateShader, glDeleteShader, glGetProgramInfoLog, glGetProgramiv,
     glGetShaderInfoLog, glGetShaderiv, glGetUniformLocation, glLinkProgram,
-    glShaderSource, glUniform1f, glUniform1i, glUniform3f,
-    glUniformMatrix4fv, glUseProgram,
+    glShaderSource, glUniform1f, glUniform1i, glUniform3f, glUniform3fv,
+    glUniform1iv, glUniformMatrix3fv, glUniformMatrix4fv, glUseProgram,
 )
 
 
@@ -67,6 +71,10 @@ class Shader:
         # numpy é row-major; OpenGL espera column-major. transpose=GL_TRUE faz a troca.
         glUniformMatrix4fv(self.loc(name), 1, GL_TRUE, mat.astype(np.float32))
 
+    def set_mat3(self, name: str, mat: np.ndarray):
+        # matriz 3x3 usada para transformar normais (sem translacao).
+        glUniformMatrix3fv(self.loc(name), 1, GL_TRUE, mat.astype(np.float32))
+
     def set_int(self, name: str, value: int):
         # envia um inteiro para um uniform (ex: indice de textura)
         glUniform1i(self.loc(name), int(value))
@@ -80,3 +88,16 @@ class Shader:
         if y is None:
             x, y, z = x[0], x[1], x[2]
         glUniform3f(self.loc(name), float(x), float(y), float(z))
+
+    def set_vec3_array(self, name: str, values):
+        """Envia um array de vec3 (varias luzes de uma vez)."""
+        # values e iteravel de tuplas/arrays (N x 3). Achata para o formato
+        # esperado por glUniform3fv.
+        flat = np.asarray(values, dtype=np.float32).reshape(-1)
+        count = len(flat) // 3
+        glUniform3fv(self.loc(name), count, flat)
+
+    def set_int_array(self, name: str, values):
+        """Envia um array de int (ex.: flags on/off por luz)."""
+        arr = np.asarray(values, dtype=np.int32).reshape(-1)
+        glUniform1iv(self.loc(name), len(arr), arr)

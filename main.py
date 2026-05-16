@@ -1,22 +1,40 @@
 """
-Computação Gráfica — Projeto 2
-Cenário 3D: Base Científica em Marte (interno + externo).
+Computacao Grafica — Projeto 3
+Cenario 3D: Base Cientifica em Marte (interno + externo) com
+iluminacao Phong por fragmento (ambiente + difusa + especular).
 
-Pipeline moderno do OpenGL: VAO/VBO + shaders GLSL + matrizes em numpy.
-Sem efeitos de iluminação (proibido pelo PDF).
+Pipeline moderno do OpenGL: VAO/VBO + shaders GLSL + matrizes numpy.
+
+Fontes de luz (req. 1 e 2 do enunciado):
+  - Luz 0 (externa)  : farol do ROVER. Translada com o rover; afeta
+                        APENAS objetos externos.
+  - Luz 1 (interna)  : lampada de teto da base — branca-quente.
+  (Uma segunda luz interna sera adicionada quando o novo objeto-fonte
+   for inserido na cena.)
 
 Controles:
-  Câmera:
+  Camera:
     W A S D            — andar
-    Espaço / Shift     — subir / descer
+    Espaco / Shift     — subir / descer
     Mouse              — olhar em volta
     ESC                — sair
-  Transformações (regra 7 do PDF):
-    Setas (↑↓←→)       — translação do rover
-    R / T              — rotação do satélite (esq / dir)
-    + / -              — escala do planeta de fundo (cresce / diminui)
-  Visualização:
-    P                  — toggle wireframe
+  Movimento do rover (a luz externa o acompanha):
+    Setas (↑ ↓ ← →)    — translacao do rover no chao de Marte
+  Transformacoes herdadas do Projeto 2:
+    R / T              — rotacao do satelite (esquerda / direita)
+    = / -              — escala do planeta (cresce / diminui)
+                          (tambem aceita +/- do numpad)
+  Interruptores das luzes (req. 3):
+    1                  — liga/desliga FAROL DO ROVER (externa)
+    2                  — liga/desliga LAMPADA DE TETO (interna)
+    4                  — liga/desliga LUZ AMBIENTE
+  Coeficientes globais (req. 4, 5, 6):
+    Z / X              — diminui / aumenta intensidade da luz AMBIENTE
+    C / V              — diminui / aumenta reflexao DIFUSA
+    B / N              — diminui / aumenta reflexao ESPECULAR
+  Visualizacao:
+    P                  — alterna entre malha poligonal (wireframe) e
+                         preenchido (fill)
 """
 import math
 import sys
@@ -37,23 +55,30 @@ from src.floor import _height as terrain_height
 from src.scene import Scene, SKY_HEIGHT, WORLD_HALF, BASE_FOOTPRINT_RADIUS
 from src.shader import Shader
 
-# Altura dos olhos acima do chão (câmera FPS)
+# Altura dos olhos acima do chao (camera FPS)
 EYE_HEIGHT = 3.0
 
 ROOT = Path(__file__).resolve().parent
 SHADERS = ROOT / "shaders"
 
 WIDTH, HEIGHT = 1280, 800
-TITLE = "Projeto 2 — Base Cientifica em Marte"
+TITLE = "Projeto 3 — Base Cientifica em Marte (Iluminacao)"
 
 
 class InputState:
+    """Estado de teclado pensado para detectar "edge" (foi pressionada
+    agora, mas nao no frame anterior). Usado para os toggles."""
     def __init__(self):
         self.first_mouse = True
         self.last_x = WIDTH / 2
         self.last_y = HEIGHT / 2
+        # estados anteriores das teclas de toggle (para detectar borda)
+        self.k1_was = False
+        self.k2_was = False
+        self.k4_was = False
+        # toggle de malha poligonal (wireframe) — tecla P
+        self.p_was = False
         self.wireframe = False
-        self.p_was_down = False
 
 
 def make_window():
@@ -115,52 +140,79 @@ def main():
     glCullFace(GL_BACK)
     glClearColor(0.02, 0.02, 0.04, 1.0)
 
-    # parâmetros das transformações por teclado
+    # =====================================================================
+    #  ESTADO GLOBAL DE ILUMINACAO (controlado por teclado)
+    # =====================================================================
+    # Componente ambiente: cor + intensidade + interruptor proprio.
+    ambient_color = (0.6, 0.6, 0.7)   # ambiente levemente azulado
+    ka_strength = 0.20                 # forca da luz ambiente (req. 4)
+    ambient_on = True
+
+    # Multiplicadores globais da reflexao difusa e especular (req. 5, 6).
+    # Comecam em 1.0 (intensidade "natural" do material proprio do objeto).
+    diffuse_strength = 1.0
+    specular_strength = 1.0
+
+    # Velocidade do rover (translacao por teclado; a luz externa o acompanha).
     rover_speed = 6.0
+    # Velocidade angular do satelite (rad/s).
     satelite_rot_speed = 1.5
+    # Velocidade de escala do planeta e limites (uniformemente nos 3 eixos).
     planet_scale_speed = 5.0
     planet_min_scale, planet_max_scale = 5.0, 80.0
 
+    # Passos por segundo para incremento/decremento das teclas de intensidade.
+    AMBIENT_STEP   = 0.6   # /s
+    DIFFUSE_STEP   = 0.8
+    SPECULAR_STEP  = 0.8
+
     print("[init] OK. Entrando no loop.")
+    print("[ctrls] 1/2/3=toggle luzes  4=toggle ambiente  Z/X=ambiente  C/V=difusa  B/N=especular")
     last_t = glfw.get_time()
     while not glfw.window_should_close(win):
         now = glfw.get_time()
         dt = now - last_t
         last_t = now
 
-        # ---------- INPUT ----------
+        # ---------------------------------------------------------------
+        # INPUT
+        # ---------------------------------------------------------------
         if glfw.get_key(win, glfw.KEY_ESCAPE) == glfw.PRESS:
             glfw.set_window_should_close(win, True)
 
-        # câmera
+        # --- camera ---
         fwd = (glfw.get_key(win, glfw.KEY_W) == glfw.PRESS) - (glfw.get_key(win, glfw.KEY_S) == glfw.PRESS)
         rgt = (glfw.get_key(win, glfw.KEY_D) == glfw.PRESS) - (glfw.get_key(win, glfw.KEY_A) == glfw.PRESS)
         upd = (glfw.get_key(win, glfw.KEY_SPACE) == glfw.PRESS) - (glfw.get_key(win, glfw.KEY_LEFT_SHIFT) == glfw.PRESS)
         cam.process_keyboard(dt, fwd, rgt, upd)
 
-        # rover (translação) — setas
+        # --- rover (continua sendo movido por teclado: e o objeto que
+        #     carrega a fonte de luz externa, req. 1). ---
         rdx = (glfw.get_key(win, glfw.KEY_RIGHT) == glfw.PRESS) - (glfw.get_key(win, glfw.KEY_LEFT) == glfw.PRESS)
         rdz = (glfw.get_key(win, glfw.KEY_DOWN) == glfw.PRESS) - (glfw.get_key(win, glfw.KEY_UP) == glfw.PRESS)
         if rdx or rdz:
             scene.rover.position[0] += rdx * rover_speed * dt
             scene.rover.position[2] += rdz * rover_speed * dt
-            # mantém rover no terreno
             scene.rover.position[0] = max(-WORLD_HALF + 5, min(WORLD_HALF - 5, scene.rover.position[0]))
             scene.rover.position[2] = max(-WORLD_HALF + 5, min(WORLD_HALF - 5, scene.rover.position[2]))
-            
-            # Ajusta o Y do rover para grudar no terreno
-            scene.rover.position[1] = terrain_height(scene.rover.position[0], scene.rover.position[2], BASE_FOOTPRINT_RADIUS)
-            
-            # vira a "cara" do rover na direção do movimento
+            scene.rover.position[1] = terrain_height(
+                scene.rover.position[0], scene.rover.position[2], BASE_FOOTPRINT_RADIUS,
+            )
             if rdx != 0 or rdz != 0:
-                scene.rover.rotation[1] = math.atan2(rdx, -rdz)
+                # rotate_y(theta) leva a frente local do rover (-Z) para
+                # (-sin theta, 0, -cos theta). Para que essa frente coincida
+                # com a direcao do movimento (rdx, rdz) precisamos de:
+                #   sin theta = -rdx  e  cos theta = -rdz
+                # Logo theta = atan2(-rdx, -rdz). O sinal de rdx era o
+                # culpado pelo rover andar "de costas" com setas LEFT/RIGHT.
+                scene.rover.rotation[1] = math.atan2(-rdx, -rdz)
 
-        # satélite (rotação) — R / T
+        # --- satelite (rotacao Y) — R / T ---
         srot = (glfw.get_key(win, glfw.KEY_T) == glfw.PRESS) - (glfw.get_key(win, glfw.KEY_R) == glfw.PRESS)
         if srot:
             scene.satelite.rotation[1] += srot * satelite_rot_speed * dt
 
-        # planeta (escala) — + / -
+        # --- planeta (escala uniforme) — = / -  (ou +/- do numpad) ---
         plus = (glfw.get_key(win, glfw.KEY_EQUAL) == glfw.PRESS or
                 glfw.get_key(win, glfw.KEY_KP_ADD) == glfw.PRESS)
         minus = (glfw.get_key(win, glfw.KEY_MINUS) == glfw.PRESS or
@@ -171,44 +223,108 @@ def main():
             new_scale = max(planet_min_scale, min(planet_max_scale, new_scale))
             scene.planet.scale = np.array([new_scale, new_scale, new_scale], dtype=np.float32)
 
-        # wireframe toggle
+        # --- toggles de luzes (1=rover, 2=teto, 3=abajur, 4=ambiente) ---
+        # Borda de subida: liga/desliga apenas no frame em que a tecla
+        # passa de "solta" para "pressionada".
+        k1_now = glfw.get_key(win, glfw.KEY_1) == glfw.PRESS
+        if k1_now and not inp.k1_was:
+            scene.lights[0].on = not scene.lights[0].on
+            print(f"[luz] farol do rover = {'ON' if scene.lights[0].on else 'OFF'}")
+        inp.k1_was = k1_now
+
+        k2_now = glfw.get_key(win, glfw.KEY_2) == glfw.PRESS
+        if k2_now and not inp.k2_was:
+            scene.lights[1].on = not scene.lights[1].on
+            print(f"[luz] lampada de teto = {'ON' if scene.lights[1].on else 'OFF'}")
+        inp.k2_was = k2_now
+
+        k4_now = glfw.get_key(win, glfw.KEY_4) == glfw.PRESS
+        if k4_now and not inp.k4_was:
+            ambient_on = not ambient_on
+            print(f"[luz] ambiente = {'ON' if ambient_on else 'OFF'}")
+        inp.k4_was = k4_now
+
+        # --- toggle de malha poligonal (wireframe) — tecla P ---
         p_now = glfw.get_key(win, glfw.KEY_P) == glfw.PRESS
-        if p_now and not inp.p_was_down:
+        if p_now and not inp.p_was:
             inp.wireframe = not inp.wireframe
             print(f"[wireframe] {'ON' if inp.wireframe else 'OFF'}")
-        inp.p_was_down = p_now
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if inp.wireframe else GL_FILL)
+        inp.p_was = p_now
 
-        # ---------- UPDATE ----------
+        # --- incremento/decremento dos coeficientes (segura para repetir) ---
+        # Luz ambiente Z / X (req. 4).
+        if glfw.get_key(win, glfw.KEY_Z) == glfw.PRESS:
+            ka_strength = max(0.0, ka_strength - AMBIENT_STEP * dt)
+        if glfw.get_key(win, glfw.KEY_X) == glfw.PRESS:
+            ka_strength = min(2.0, ka_strength + AMBIENT_STEP * dt)
+        # Reflexao difusa C / V (req. 5).
+        if glfw.get_key(win, glfw.KEY_C) == glfw.PRESS:
+            diffuse_strength = max(0.0, diffuse_strength - DIFFUSE_STEP * dt)
+        if glfw.get_key(win, glfw.KEY_V) == glfw.PRESS:
+            diffuse_strength = min(4.0, diffuse_strength + DIFFUSE_STEP * dt)
+        # Reflexao especular B / N (req. 6).
+        if glfw.get_key(win, glfw.KEY_B) == glfw.PRESS:
+            specular_strength = max(0.0, specular_strength - SPECULAR_STEP * dt)
+        if glfw.get_key(win, glfw.KEY_N) == glfw.PRESS:
+            specular_strength = min(4.0, specular_strength + SPECULAR_STEP * dt)
+
+        # ---------------------------------------------------------------
+        # UPDATE
+        # ---------------------------------------------------------------
         scene.update(dt)
 
-        # Ajusta o limite Y mínimo da câmera conforme o relevo do terreno.
-        # terrain_height() retorna 0 dentro da base (blend=0) e o
-        # deslocamento senoidal fora dela — a câmera nunca entra no chão.
+        # Adapta o limite Y minimo da camera ao relevo do terreno.
         th = terrain_height(cam.position[0], cam.position[2], BASE_FOOTPRINT_RADIUS)
         ymin = th + EYE_HEIGHT
         (xb, zb) = (cam.bounds[0], cam.bounds[2])
         cam.bounds = (xb, (ymin, SKY_HEIGHT - 5), zb)
-        # garante que a câmera não fique presa abaixo do novo mínimo
         if cam.position[1] < ymin:
             cam.position[1] = ymin
 
-        # ---------- RENDER ----------
+        # ---------------------------------------------------------------
+        # RENDER
+        # ---------------------------------------------------------------
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         w, h = glfw.get_framebuffer_size(win)
         proj = T.perspective(math.radians(60.0), w / max(h, 1), 0.1, 1500.0)
         view = cam.view_matrix()
 
-        # 1) Skybox primeiro (com view sem translação)
+        # 1) Skybox primeiro (com view sem translacao)
         view_no_t = view.copy()
         view_no_t[0, 3] = view_no_t[1, 3] = view_no_t[2, 3] = 0.0
         scene.skybox.draw(sky_shader, view_no_t, proj)
 
-        # 2) Resto da cena
+        # 2) Resto da cena com shader basico (Phong)
         basic.use()
         basic.set_mat4("u_proj", proj)
         basic.set_mat4("u_view", view)
+
+        # ---- Uniforms de iluminacao globais (atualizados todo frame) ----
+        # Posicao do observador (camera) para a reflexao especular.
+        basic.set_vec3("u_view_pos", *cam.position)
+
+        # Ambiente.
+        basic.set_vec3("u_ambient_color", *ambient_color)
+        basic.set_float("u_ka_strength", ka_strength)
+        basic.set_int("u_ambient_on", 1 if ambient_on else 0)
+
+        # Multiplicadores globais difusa/especular.
+        basic.set_float("u_diffuse_strength", diffuse_strength)
+        basic.set_float("u_specular_strength", specular_strength)
+
+        # Arrays de luzes (3 pontuais). Mesmo se uma estiver "off",
+        # mandamos a posicao/cor — o shader ignora pelo flag u_light_on[].
+        positions = [tuple(l.position) for l in scene.lights]
+        colors    = [tuple(l.color)    for l in scene.lights]
+        on_flags  = [1 if l.on else 0  for l in scene.lights]
+        basic.set_vec3_array("u_light_pos",   positions)
+        basic.set_vec3_array("u_light_color", colors)
+        basic.set_int_array("u_light_on",     on_flags)
+
+        # ---- Desenha a cena ----
+        # Tecla P alterna entre FILL (preenchido) e LINE (malha poligonal).
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE if inp.wireframe else GL_FILL)
         scene.draw(basic, wireframe=inp.wireframe)
 
         glfw.swap_buffers(win)

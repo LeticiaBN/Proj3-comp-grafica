@@ -63,8 +63,8 @@ class GpuSubMesh:
             glActiveTexture(GL_TEXTURE0)
             glBindTexture(GL_TEXTURE_2D, self.texture)
             shader.set_int("u_tex", 0)
-        # passa cor difusa e flag de wireframe para o shader
-        shader.set_vec3("u_kd", *self.kd)
+        # No projeto 3 o u_kd vem da Entity (parametro proprio do objeto,
+        # req. 7), nao do .mtl — por isso NAO setamos u_kd aqui.
         shader.set_int("u_wireframe", 1 if wireframe else 0)
         # binda o vao e desenha como triangulos
         glBindVertexArray(self.vao)

@@ -276,18 +276,33 @@ def _make_floor_with_circular_hole_buffer(
 
 
 class _StaticMesh2D:
-    """Helper interno: encapsula VAO/VBO + draw para malhas 2D estáticas
+    """Helper interno: encapsula VAO/VBO + draw para malhas 2D estaticas
     com layout (pos3, uv2, normal3). Pode ser pintada com uma textura
-    real ou com cor sólida (textura branca 1x1 + u_kd)."""
+    real ou com cor solida (textura branca 1x1 + u_kd).
+
+    Como nao e uma Entity, esta classe carrega seu PROPRIO material
+    (kd/ks/shininess) e seu escopo de luz (outdoor/indoor/shared), e os
+    envia para o shader em cada draw — necessario para o modelo Phong
+    do projeto 3.
+    """
 
     def __init__(
         self,
         buf: np.ndarray,
         texture_id: int,
         color: Tuple[float, float, float] = (1.0, 1.0, 1.0),
+        ks: Tuple[float, float, float] = (0.1, 0.1, 0.1),
+        shininess: float = 8.0,
+        scope: str = "outdoor",
     ):
         self.texture = texture_id
         self.color = color
+        # material proprio (substitui parametros do .mtl, req. 7)
+        self.ks = ks
+        self.shininess = shininess
+        # mascara de luzes pelo escopo declarativo
+        from src.entity import _scope_to_mask
+        self.light_mask = _scope_to_mask(scope)
         # cada vertice ocupa 8 floats (pos3 + uv2 + normal3)
         self._vertex_count = len(buf) // 8
         # cria vao + vbo e envia os dados
@@ -307,12 +322,20 @@ class _StaticMesh2D:
         glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, ctypes_void_p(20))
         glBindVertexArray(0)
 
+    def _push_material_uniforms(self, shader):
+        """Envia material + flags de iluminacao para o shader."""
+        shader.set_vec3("u_kd", *self.color)
+        shader.set_vec3("u_ks", *self.ks)
+        shader.set_float("u_shininess", float(self.shininess))
+        shader.set_int("u_light_mask", self.light_mask)
+        shader.set_int("u_unlit", 0)
+
     def _bind_and_draw(self, shader, wireframe: bool):
         # ativa textura na unidade 0 e seta uniforms basicos
         glActiveTexture(GL_TEXTURE0)
         glBindTexture(GL_TEXTURE_2D, self.texture)
         shader.set_int("u_tex", 0)
-        shader.set_vec3("u_kd", *self.color)
+        self._push_material_uniforms(shader)
         shader.set_int("u_wireframe", 1 if wireframe else 0)
         # binda o vao e dispara o desenho
         glBindVertexArray(self.vao)
@@ -341,6 +364,8 @@ class TexturedDisk(_StaticMesh2D):
     def draw(self, shader, wireframe: bool = False):
         # so precisa de translacao (sem rotacao/escala)
         shader.set_mat4("u_model", T.translate(*self.position))
+        # translacao pura nao afeta normais — identidade 3x3
+        shader.set_mat3("u_normal_mat", np.identity(3, dtype=np.float32))
         self._bind_and_draw(shader, wireframe)
 
 
@@ -367,6 +392,7 @@ class SolidColorDisk(_StaticMesh2D):
 
     def draw(self, shader, wireframe: bool = False):
         shader.set_mat4("u_model", T.translate(*self.position))
+        shader.set_mat3("u_normal_mat", np.identity(3, dtype=np.float32))
         self._bind_and_draw(shader, wireframe)
 
 
@@ -409,6 +435,7 @@ class TiledFloorDisk(_StaticMesh2D):
 
     def draw(self, shader, wireframe: bool = False):
         shader.set_mat4("u_model", T.translate(*self.position))
+        shader.set_mat3("u_normal_mat", np.identity(3, dtype=np.float32))
         self._bind_and_draw(shader, wireframe)
 
 
@@ -439,6 +466,7 @@ class MarsFloorWithCircularHole(_StaticMesh2D):
     def draw(self, shader, wireframe: bool = False):
         # piso e fixo no mundo: matriz de modelo = identidade
         shader.set_mat4("u_model", T.identity())
+        shader.set_mat3("u_normal_mat", np.identity(3, dtype=np.float32))
         self._bind_and_draw(shader, wireframe)
 
 
@@ -461,6 +489,13 @@ def _make_mountain_cone(
     def uv(x: float, z: float) -> tuple:
         return ((x / R) * 0.5 + 0.5, (z / R) * 0.5 + 0.5)
 
+    # Para iluminacao Phong: a face lateral do cone NAO aponta para cima.
+    # No corte axial a inclinacao vai de (R, 0) ate (0, H), entao a normal
+    # externa em coordenadas (radial, vertical) e (H, R)/||(H,R)||.
+    # Em 3D, para o angulo "a" no plano XZ:
+    #   n = (H*cos(a), R, H*sin(a)) / sqrt(H^2 + R^2)
+    slope_len = math.sqrt(H * H + R * R)
+
     # quebra o cone em fatias triangulares ao redor do eixo y
     for i in range(segments):
         a0 = 2.0 * math.pi * i / segments
@@ -468,10 +503,18 @@ def _make_mountain_cone(
         # pontos da base do cone
         x0, z0 = R * math.cos(a0), R * math.sin(a0)
         x1, z1 = R * math.cos(a1), R * math.sin(a1)
-        # Face lateral: ápice → P_{i+1} → P_i  (CCW visto de fora)
-        verts += [0.0, H,  0.0,  *uv(0.0, 0.0),  0.0, 1.0, 0.0]
-        verts += [x1,  0.0, z1,  *uv(x1, z1),    0.0, 1.0, 0.0]
-        verts += [x0,  0.0, z0,  *uv(x0, z0),    0.0, 1.0, 0.0]
+        # Normais externas (uma por vertice da lateral, suavizadas via
+        # a media dos dois lados do triangulo no apice).
+        n0 = (H * math.cos(a0) / slope_len, R / slope_len, H * math.sin(a0) / slope_len)
+        n1 = (H * math.cos(a1) / slope_len, R / slope_len, H * math.sin(a1) / slope_len)
+        # No apice usamos a media entre n0 e n1 para evitar "ressalto"
+        # de iluminacao no topo entre fatias vizinhas.
+        nax = (n0[0] + n1[0]) * 0.5
+        naz = (n0[2] + n1[2]) * 0.5
+        # Face lateral: apice → P_{i+1} → P_i  (CCW visto de fora)
+        verts += [0.0, H,  0.0,  *uv(0.0, 0.0),  nax, R / slope_len, naz]
+        verts += [x1,  0.0, z1,  *uv(x1, z1),    n1[0], n1[1], n1[2]]
+        verts += [x0,  0.0, z0,  *uv(x0, z0),    n0[0], n0[1], n0[2]]
         # Tampa de baixo: (centro, P_i, P_{i+1})  → normal -Y
         verts += [0.0, 0.0, 0.0, *uv(0.0, 0.0),  0.0, -1.0, 0.0]
         verts += [x0,  0.0, z0,  *uv(x0, z0),    0.0, -1.0, 0.0]
@@ -504,4 +547,5 @@ class MarsMountain(_StaticMesh2D):
     def draw(self, shader, wireframe: bool = False):
         # so translacao: cada montanha vai para sua posicao no mundo
         shader.set_mat4("u_model", T.translate(*self.position))
+        shader.set_mat3("u_normal_mat", np.identity(3, dtype=np.float32))
         self._bind_and_draw(shader, wireframe)
