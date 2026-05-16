@@ -34,10 +34,17 @@ uniform vec3 u_light_pos[N_LIGHTS];
 uniform vec3 u_light_color[N_LIGHTS];
 uniform int  u_light_on[N_LIGHTS];
 
-// Mascara de bits indicando quais luzes podem afetar este objeto.
-// bit 0 = luz 0 (externa), bit 1 = luz 1 (interna), bit 2 = luz 2 (interna).
-// Externos recebem mascara 1; internos recebem mascara 6; "shared" recebe 7.
+// Mascara de bits indicando quais luzes podem afetar este objeto, com
+// uma versao separada para a face da FRENTE e da TRAS:
+//   - Objetos normais (cama, robo, etc.): mask == mask_back == mask do scope.
+//   - Objetos "shared" (parede da base, vista pelos dois lados sem culling):
+//     mask = OUTDOOR (so externas iluminam o lado de fora) e
+//     mask_back = INDOOR (so internas iluminam o lado de dentro).
+// Isso garante que, mesmo quando a parede oposta da cupula tem sua normal
+// flipada apontando para dentro, a luz externa do rover NAO consiga "atravessar"
+// o domo e iluminar o lado interno da parede do outro lado.
 uniform int u_light_mask;
+uniform int u_light_mask_back;
 
 // Posicao do observador (para reflexao especular).
 uniform vec3 u_view_pos;
@@ -102,10 +109,15 @@ void main() {
     vec3 diffuse_sum  = vec3(0.0);
     vec3 specular_sum = vec3(0.0);
 
+    // Mascara "efetiva": depende de qual lado do triangulo estamos vendo.
+    // Para objetos shared (parede da base), a face de fora recebe so
+    // luzes externas e a face de dentro recebe so luzes internas.
+    int effective_mask = gl_FrontFacing ? u_light_mask : u_light_mask_back;
+
     for (int i = 0; i < N_LIGHTS; i++) {
         if (u_light_on[i] == 0) continue;
         // Mascara: este objeto e afetado por esta luz?
-        if ((u_light_mask & (1 << i)) == 0) continue;
+        if ((effective_mask & (1 << i)) == 0) continue;
 
         // Vetor da superficie ate a luz.
         vec3 to_light = u_light_pos[i] - v_world_pos;

@@ -24,7 +24,11 @@ LIGHT_MASK_SHARED  = 0b11  # paredes da base (vistas de dentro e de fora)
 
 
 def _scope_to_mask(scope: str) -> int:
-    """Converte o escopo declarativo em mascara de bits."""
+    """Converte o escopo declarativo em mascara de bits (lado da frente).
+
+    Para objetos NAO de duas faces (todos exceto a parede da base) basta
+    essa funcao — o lado de tras nunca e desenhado.
+    """
     s = scope.lower()
     if s == "outdoor":
         return LIGHT_MASK_OUTDOOR
@@ -32,6 +36,26 @@ def _scope_to_mask(scope: str) -> int:
         return LIGHT_MASK_INDOOR
     if s == "shared":
         return LIGHT_MASK_SHARED
+    raise ValueError(f"scope invalido: {scope!r}")
+
+
+def _scope_to_masks(scope: str):
+    """Retorna o par (front_mask, back_mask) usado pelo shader.
+
+    Para "shared" (parede da cupula, desenhada dos dois lados), a face
+    de fora recebe SOMENTE luzes externas (OUTDOOR) e a face de dentro
+    recebe SOMENTE luzes internas (INDOOR) — assim a luz do rover nao
+    atravessa o domo e ilumina a parede oposta por dentro.
+    Para os outros escopos as duas mascaras sao iguais (a face de tras
+    nunca chega ao fragment shader porque o culling descarta).
+    """
+    s = scope.lower()
+    if s == "outdoor":
+        return LIGHT_MASK_OUTDOOR, LIGHT_MASK_OUTDOOR
+    if s == "indoor":
+        return LIGHT_MASK_INDOOR, LIGHT_MASK_INDOOR
+    if s == "shared":
+        return LIGHT_MASK_OUTDOOR, LIGHT_MASK_INDOOR
     raise ValueError(f"scope invalido: {scope!r}")
 
 
@@ -71,8 +95,11 @@ class Entity:
         self.shininess = float(shininess)
 
         # ---- escopo de luz ----
+        # Dois valores: mascara da face DA FRENTE (vista de fora p/ parede
+        # da base) e da face DE TRAS (vista de dentro). Para objetos nao
+        # de duas faces sao iguais.
         self.scope = scope
-        self.light_mask = _scope_to_mask(scope)
+        self.light_mask, self.light_mask_back = _scope_to_masks(scope)
 
         # objetos-fonte (lampadas) sao renderizados sem iluminacao (unlit)
         # para sempre brilharem com a propria cor — assim e visivel onde
@@ -123,8 +150,10 @@ class Entity:
         shader.set_vec3("u_ks", *self.ks)
         shader.set_float("u_shininess", self.shininess)
 
-        # mascara de luzes (define se o objeto e externo, interno ou shared)
-        shader.set_int("u_light_mask", self.light_mask)
+        # mascara de luzes para FRENTE e TRAS do triangulo. Para shared,
+        # cada face recebe um conjunto diferente de luzes (ver entity.py).
+        shader.set_int("u_light_mask",      self.light_mask)
+        shader.set_int("u_light_mask_back", self.light_mask_back)
         # objetos-fonte sao renderizados unlit (brilham com a propria cor)
         shader.set_int("u_unlit", 1 if self.emissive else 0)
 

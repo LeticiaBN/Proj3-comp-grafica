@@ -300,9 +300,10 @@ class _StaticMesh2D:
         # material proprio (substitui parametros do .mtl, req. 7)
         self.ks = ks
         self.shininess = shininess
-        # mascara de luzes pelo escopo declarativo
-        from src.entity import _scope_to_mask
-        self.light_mask = _scope_to_mask(scope)
+        # mascara de luzes pelo escopo declarativo. Pisos/montanhas nao
+        # sao de duas faces, entao front_mask == back_mask.
+        from src.entity import _scope_to_masks
+        self.light_mask, self.light_mask_back = _scope_to_masks(scope)
         # cada vertice ocupa 8 floats (pos3 + uv2 + normal3)
         self._vertex_count = len(buf) // 8
         # cria vao + vbo e envia os dados
@@ -327,7 +328,8 @@ class _StaticMesh2D:
         shader.set_vec3("u_kd", *self.color)
         shader.set_vec3("u_ks", *self.ks)
         shader.set_float("u_shininess", float(self.shininess))
-        shader.set_int("u_light_mask", self.light_mask)
+        shader.set_int("u_light_mask",      self.light_mask)
+        shader.set_int("u_light_mask_back", self.light_mask_back)
         shader.set_int("u_unlit", 0)
 
     def _bind_and_draw(self, shader, wireframe: bool):

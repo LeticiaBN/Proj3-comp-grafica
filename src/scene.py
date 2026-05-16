@@ -122,8 +122,8 @@ class Scene:
         self.mars.ks = (0.05, 0.05, 0.05)
         self.mars.shininess = 4.0
         # Marte e externo: so a luz do rover (alem da ambiente) o afeta.
-        from src.entity import _scope_to_mask
-        self.mars.light_mask = _scope_to_mask("outdoor")
+        from src.entity import _scope_to_mask, _scope_to_masks
+        self.mars.light_mask, self.mars.light_mask_back = _scope_to_masks("outdoor")
 
         # ---- Chao interno (disco circular, dentro da base) ----
         self.indoor_floor = TiledFloorDisk(
@@ -137,7 +137,7 @@ class Scene:
         # Material: piso de azulejo metalico, brilho moderado.
         self.indoor_floor.ks = (0.4, 0.4, 0.45)
         self.indoor_floor.shininess = 24.0
-        self.indoor_floor.light_mask = _scope_to_mask("indoor")
+        self.indoor_floor.light_mask, self.indoor_floor.light_mask_back = _scope_to_masks("indoor")
 
         # =================================================================
         #  BASE MODULAR
@@ -447,7 +447,7 @@ class Scene:
             m.color = (1.0, 0.92, 0.88)
             m.ks = (0.08, 0.08, 0.08)
             m.shininess = 6.0
-            m.light_mask = _scope_to_mask("outdoor")
+            m.light_mask, m.light_mask_back = _scope_to_masks("outdoor")
             self.mountains.append(m)
 
         # Animacao da nave (orbita).
