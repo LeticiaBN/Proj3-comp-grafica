@@ -9,8 +9,9 @@ Fontes de luz (req. 1 e 2 do enunciado):
   - Luz 0 (externa)  : farol do ROVER. Translada com o rover; afeta
                         APENAS objetos externos.
   - Luz 1 (interna)  : lampada de teto da base — branca-quente.
-  (Uma segunda luz interna sera adicionada quando o novo objeto-fonte
-   for inserido na cena.)
+  - Luz 2 (interna)  : SABRE DE LUZ em cima da mesa — verde
+                        (segunda fonte interna, cor diferente da
+                        lampada de teto, req. 2 do PDF).
 
 Controles:
   Camera:
@@ -26,7 +27,8 @@ Controles:
                           (tambem aceita +/- do numpad)
   Interruptores das luzes (req. 3):
     1                  — liga/desliga FAROL DO ROVER (externa)
-    2                  — liga/desliga LAMPADA DE TETO (interna)
+    2                  — liga/desliga LAMPADA DE TETO (interna A)
+    3                  — liga/desliga SABRE DE LUZ (interna B)
     4                  — liga/desliga LUZ AMBIENTE
   Coeficientes globais (req. 4, 5, 6):
     Z / X              — diminui / aumenta intensidade da luz AMBIENTE
@@ -75,6 +77,7 @@ class InputState:
         # estados anteriores das teclas de toggle (para detectar borda)
         self.k1_was = False
         self.k2_was = False
+        self.k3_was = False
         self.k4_was = False
         # toggle de malha poligonal (wireframe) — tecla P
         self.p_was = False
@@ -237,6 +240,12 @@ def main():
             scene.lights[1].on = not scene.lights[1].on
             print(f"[luz] lampada de teto = {'ON' if scene.lights[1].on else 'OFF'}")
         inp.k2_was = k2_now
+
+        k3_now = glfw.get_key(win, glfw.KEY_3) == glfw.PRESS
+        if k3_now and not inp.k3_was:
+            scene.lights[2].on = not scene.lights[2].on
+            print(f"[luz] sabre de luz = {'ON' if scene.lights[2].on else 'OFF'}")
+        inp.k3_was = k3_now
 
         k4_now = glfw.get_key(win, glfw.KEY_4) == glfw.PRESS
         if k4_now and not inp.k4_was:

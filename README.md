@@ -19,10 +19,11 @@ Modelo Phong por fragmento, com **3 luzes pontuais** + 1 luz ambiente global. Ca
 | Luz | Posição | Cor | Visual | Afeta |
 |---|---|---|---|---|
 | **0 — Faróis do Rover** (externa, móvel) | acompanha o rover | branco-quente | **2 esferas pequenas** nos faróis dianteiros | apenas objetos externos |
-| **1 — Lâmpadas de Teto** (interna) | dentro da cúpula | branco-quente | **2 cilindros (tubos fluorescentes)** suspensos no teto | apenas objetos internos |
+| **1 — Lâmpadas de Teto** (interna A) | dentro da cúpula | branco-quente | **2 cilindros (tubos fluorescentes)** suspensos no teto | apenas objetos internos |
+| **2 — Sabre de Luz** (interna B) | lâmina do sabre em cima da mesa | verde | **cilindro emissivo** sobreposto à lâmina do sabre | apenas objetos internos |
 | **Ambiente** | global | leve azul | — | todos os objetos |
 
-> Uma segunda luz interna será adicionada quando o objeto-fonte correspondente for incluído na cena (req. 2 do PDF: duas fontes internas de cores diferentes).
+> Requisito 2 do PDF (duas fontes internas de **cores diferentes**) atendido: lâmpada de teto branca-quente + sabre verde.
 
 O isolamento entre luzes externas/internas é feito por **máscara de bits no fragment shader**: cada objeto declara seu escopo (`outdoor` / `indoor` / `shared`) e o shader só aplica as luzes cujo bit está habilitado para aquele escopo.
 
@@ -40,7 +41,8 @@ Cada objeto tem **seus próprios parâmetros de reflexão difusa (k_d), especula
 | Escalar **planeta** (diminui / cresce) | `-` / `=` (ou numpad `+`/`-`) |
 | Toggle **wireframe** (malha poligonal) | `P` |
 | Toggle **faróis do rover** (luz externa) | `1` |
-| Toggle **lâmpadas de teto** (interna) | `2` |
+| Toggle **lâmpadas de teto** (interna A) | `2` |
+| Toggle **sabre de luz** (interna B) | `3` |
 | Toggle **luz ambiente** | `4` |
 | Luz ambiente: **diminuir / aumentar** | `Z` / `X` |
 | Reflexão **difusa**: diminuir / aumentar | `C` / `V` |
@@ -107,6 +109,7 @@ Piso procedural de azulejos sci-fi.
 | Baby Yoda | Morador da estação |
 | Garrafa | Vidro (especular alto + shininess alto) |
 | Lixeira | Metal fosco |
+| **Sabre de Luz** (Luke) | Em cima da mesa de trabalho — segunda fonte de luz interna (verde) |
 | **Lâmpadas de teto** | Dois cilindros (tubos fluorescentes) suspensos dentro da cúpula |
 
 ## Notas de implementação

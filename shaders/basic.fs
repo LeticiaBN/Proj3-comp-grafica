@@ -26,10 +26,9 @@ uniform int  u_ambient_on;      // 1 = ligada, 0 = desligada
 // ---- Luzes pontuais.
 // Indices fixos: 0 = farol do rover (externa)
 //                1 = lampada de teto (interna A)
-// (slot da luz 2 reservado para o futuro objeto-fonte interno B —
-//  remover esses comentarios quando re-adicionar a luz; tambem
-//  vai precisar bumpar N_LIGHTS de volta para 3.)
-const int N_LIGHTS = 2;
+//                2 = sabre de luz (interna B — segunda fonte interna,
+//                    cor diferente da lampada de teto; req. 2 do PDF).
+const int N_LIGHTS = 3;
 uniform vec3 u_light_pos[N_LIGHTS];
 uniform vec3 u_light_color[N_LIGHTS];
 uniform int  u_light_on[N_LIGHTS];

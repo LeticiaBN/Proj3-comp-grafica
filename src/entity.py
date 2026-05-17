@@ -16,11 +16,10 @@ from src.mesh import Mesh
 # Mascaras de luz usadas pelo fragment shader.
 # bit 0 = luz 0 (farol do rover, externa)
 # bit 1 = luz 1 (lampada de teto, interna A)
-# (Quando uma segunda luz interna for adicionada, criar bit 2 e refazer
-#  LIGHT_MASK_INDOOR = 0b110 / LIGHT_MASK_SHARED = 0b111.)
-LIGHT_MASK_OUTDOOR = 0b01  # so o farol do rover
-LIGHT_MASK_INDOOR  = 0b10  # so a lampada de teto
-LIGHT_MASK_SHARED  = 0b11  # paredes da base (vistas de dentro e de fora)
+# bit 2 = luz 2 (sabre de luz, interna B — segunda fonte interna)
+LIGHT_MASK_OUTDOOR = 0b001  # so o farol do rover
+LIGHT_MASK_INDOOR  = 0b110  # lampada de teto + sabre (duas fontes internas)
+LIGHT_MASK_SHARED  = 0b111  # paredes da base (vistas de dentro e de fora)
 
 
 def _scope_to_mask(scope: str) -> int:

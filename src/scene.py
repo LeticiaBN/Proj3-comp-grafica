@@ -7,8 +7,9 @@ Modelo de iluminacao Phong por fragmento, com luzes pontuais:
                      APENAS objetos externos (req. 1).
   Luz 1 (interna)  — LAMPADA DE TETO da base. Luz branca-quente; afeta
                      APENAS objetos internos (req. 2).
-  (Uma segunda luz interna sera adicionada quando o objeto-fonte
-   correspondente for incluido na cena.)
+  Luz 2 (interna)  — SABRE DE LUZ em cima da mesa. Cor verde, contrasta
+                     com a lampada de teto (req. 2 — duas fontes
+                     internas de CORES DIFERENTES).
 
 Cada Entity carrega seus PROPRIOS parametros de iluminacao difusa e
 especular (req. 7 — sem reutilizar valores do .mtl), e cada uma
@@ -101,13 +102,18 @@ class Scene:
             position=(0.0, 7.5, 0.0),
             color=(1.0, 0.9, 0.7),
         )
-        # (Espaco reservado para uma SEGUNDA luz interna. Quando for
-        #  re-adicionada, recrie self.light_X, inclua-a em self.lights,
-        #  bump N_LIGHTS no fragment shader para 3 e ajuste as mascaras
-        #  em src/entity.py.)
-        # Lista de luzes ativas (indice 0 = rover, 1 = teto).
+        # Luz 2 — SABRE DE LUZ em cima da mesa (interna B). Cor verde,
+        # contrastando com a luz quente da lampada de teto (req. 2 do PDF
+        # — duas fontes internas de cores diferentes). A posicao exata e
+        # calculada mais abaixo, depois que a Entity do sabre define onde
+        # fica o centro da lamina em coordenadas de mundo.
+        self.light_saber = Light(
+            position=(0.0, 0.0, 0.0),  # ajustada abaixo
+            color=(0.4, 1.0, 0.5),
+        )
+        # Lista de luzes ativas (indice 0 = rover, 1 = teto, 2 = sabre).
         self.lights: List[Light] = [
-            self.light_rover, self.light_ceiling,
+            self.light_rover, self.light_ceiling, self.light_saber,
         ]
 
         # ---- Chao externo (Marte) com buraco circular sob a base ----
@@ -337,6 +343,85 @@ class Scene:
             shininess=24.0, scope="indoor",
         )
 
+        # ---- SABRE DE LUZ dentro da storage_box (req. 2: 2a luz interna).
+        #
+        # ANATOMIA DO MODELO (em coordenadas LOCAIS do .obj):
+        #   - O .obj contem APENAS O CABO (handle) do sabre — a lamina
+        #     nao existe como geometria. Ela e gerada proceduralmente
+        #     mais abaixo, como um cilindro emissivo verde.
+        #   - O cabo vai de z_local = -0.41 (pommel) ate +0.19 (emissor).
+        #   - A lamina nasce no EMISSOR (extremidade +Z) e estende-se em +Z.
+    
+        saber_scale_val   = 2.4     
+        saber_lean_deg    = -60                                
+        saber_pos_xz      = (-5.5, 2.8) 
+        saber_floor_y     = 0.3    
+        blade_local_len   = 1     # comprimento da LAMINA em unidades locais
+
+        # ---- (geometria interna do modelo — nao mude se nao souber) ----
+        HANDLE_POMMEL_Z   = -0.41
+        HANDLE_EMITTER_Z  = 0.19
+
+        saber_rot_x = math.radians(saber_lean_deg)
+        cos_rx = math.cos(saber_rot_x)
+        sin_rx = math.sin(saber_rot_x)
+
+        # Aplica scale + rotacao X (sem translacao) a um ponto (0, 0, z_local).
+        # Util para descobrir onde acabam o pommel e a lamina em mundo.
+        def _saber_offset_from_z(z_local: float):
+            sz = z_local * saber_scale_val
+            return (0.0, -sz * sin_rx, sz * cos_rx)
+
+        # Posiciona a origem do sabre de forma que o pommel encoste no chao
+        # da caixa, exatamente em (saber_pos_xz[0], saber_floor_y, saber_pos_xz[1]).
+        pommel_off = _saber_offset_from_z(HANDLE_POMMEL_Z)
+        saber_pos = (
+            saber_pos_xz[0],
+            saber_floor_y - pommel_off[1],
+            saber_pos_xz[1] - pommel_off[2],
+        )
+
+        self.lightsaber = Entity(
+            Mesh.from_obj(str(ASSETS / "lightsaber" / "luke.obj")),
+            position=saber_pos,
+            rotation=(saber_rot_x, 0, 0),
+            scale=(saber_scale_val, saber_scale_val, saber_scale_val),
+            kd=(1.00, 1.00, 1.00), ks=(0.55, 0.55, 0.60),
+            shininess=64.0, scope="indoor",
+        )
+
+        # ---- LAMINA EMISSIVA (cilindro procedural) saindo do emissor ----
+        # Vai de z_local = HANDLE_EMITTER_Z ate HANDLE_EMITTER_Z + blade_local_len.
+        # Calcula o CENTRO da lamina em coordenadas de mundo aplicando a
+        # mesma transform do sabre (scale + rotacao X + translacao).
+        blade_center_z_local = HANDLE_EMITTER_Z + blade_local_len / 2.0
+        blade_off = _saber_offset_from_z(blade_center_z_local)
+        blade_center_world = (
+            saber_pos[0] + blade_off[0],
+            saber_pos[1] + blade_off[1],
+            saber_pos[2] + blade_off[2],
+        )
+        blade_len_world = blade_local_len * saber_scale_val
+
+        # A luz pontual fica no MEIO DA LAMINA — assim ela ilumina o que
+        # esta proximo da lamina e nao do cabo.
+        self.light_saber.position = np.array(blade_center_world, dtype=np.float32)
+
+        # Cilindro procedural nasce alinhado a +Y. Para alinha-lo com a
+        # lamina (direcao +Z_local do sabre apos rotacao X), basta rotacao
+        # em X por (90° + saber_lean_deg). Vale enquanto o sabre nao tiver
+        # rotacao em Y ou Z.
+        saber_blade_mesh = make_cylinder_lamp_mesh(
+            radius=0.06, height=blade_len_world,
+        )
+        self.bulb_saber_blade = Entity(
+            saber_blade_mesh,
+            position=blade_center_world,
+            rotation=(math.pi / 2 + saber_rot_x, 0, 0),
+            kd=tuple(self.light_saber.color), ks=(0, 0, 0),
+            shininess=1.0, scope="indoor", emissive=True,
+        )
+
         # =================================================================
         #  OBJETOS-FONTE VISIVEIS (req. visual do enunciado)
         # =================================================================
@@ -398,17 +483,19 @@ class Scene:
             shininess=1.0, scope="indoor", emissive=True,
         )
 
-        # ---- ABAJUR: SEM bulbo visivel agora (sera adicionado quando o
-        # usuario plugar um novo objeto a luz 2 — abajur/celular/etc.).
+        # (Bulbo da lamina do sabre foi criado junto da Entity do sabre,
+        #  mais acima — self.bulb_saber_blade. Apenas registramos no link
+        #  de bulbos abaixo para que ele acompanhe o toggle da luz 2.)
 
         # Mapeia cada bulbo a uma luz (varios bulbos podem compartilhar
         # a mesma luz; ex.: 2 farois -> 1 luz pontual do rover).
         # (entity, light_index)
         self._bulb_links = [
-            (self.bulb_rover_l,   0),
-            (self.bulb_rover_r,   0),
-            (self.bulb_ceiling_a, 1),
-            (self.bulb_ceiling_b, 1),
+            (self.bulb_rover_l,     0),
+            (self.bulb_rover_r,     0),
+            (self.bulb_ceiling_a,   1),
+            (self.bulb_ceiling_b,   1),
+            (self.bulb_saber_blade, 2),
         ]
         # Lista plana para iterar no draw().
         self.bulbs: List[Entity] = [b for b, _ in self._bulb_links]
@@ -426,7 +513,7 @@ class Scene:
         self.indoor_entities: List[Entity] = [
             self.bed, self.matress, self.bed_back, self.bed_front, self.pipes_bed,
             self.desk, self.robot, self.storage_box, self.neon, self.babyyoda,
-            self.bottle, self.trash,
+            self.bottle, self.trash, self.lightsaber,
         ]
 
         # ---- Montanhas (externo) ----
